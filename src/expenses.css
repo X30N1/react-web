@@ -1,0 +1,22 @@
+.main-expenses {
+   background-color: rgb(184, 64, 64);
+   padding: 20px;
+   border-radius: 8px;
+   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+   width: 100%;
+}
+
+.text-expenses {
+   color: white;
+   text-align: center;
+}
+
+.text-expenses h3 {
+   margin-bottom: 10px;
+   font-size: 1.1em;
+}
+
+.text-expenses p {
+   font-size: 1.4em;
+   font-weight: bold;
+}
