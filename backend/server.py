@@ -6,6 +6,13 @@ from mongo.mongobase import AtlasClient
 
 load_dotenv()
 app = FastAPI()
+db = "transactions"
+client = AtlasClient(dbname=db)
+# Ping the database to check if it's reachable
+try:
+    client.ping()
+except Exception as e:
+    print(f"Error pinging the database: {e}")
 
 
 app.add_middleware(
@@ -16,11 +23,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+@app.get("/api/fetch")
+def start():
+    return client.find(collection_name="transactions")
 
 
-@app.get("/api/get-data")
-def get_data():
-    
+@app.post("/api/insert")
+def insert(data: dict):
+    client.insert_one(collection_name="transactions", data=data)
+    return {"message": "Data inserted successfully"}

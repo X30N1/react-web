@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import './App.css';
-import Income from './income';
-import Expenses from './expenses';
+import Income from './components/income';
+import Expenses from './components/expenses';
+import Transactions from './components/Transactions';
 
 function App() {
   const [income, setIncome] = useState(4500);
@@ -16,7 +17,10 @@ function App() {
           <Expenses expenses={expenses} />
         </div>
         <div className="right-column">
-          {/* Transactions component will go here */}
+          <Transactions 
+            transactions={transactions} 
+            setTransactions={setTransactions}
+          />
         </div>
       </div>
     </div>
