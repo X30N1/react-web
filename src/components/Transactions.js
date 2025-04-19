@@ -1,48 +1,98 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './Transactions.css';
-import { apiService } from '../services/api';
+import Pagination from './Pagination';
 
 function Transactions({ transactions, setTransactions }) {
-    useEffect(() => {
-        const fetchTransactions = async () => {
-            try {
-                const data = await apiService.fetchTransactions();
-                setTransactions(data);
-            } catch (error) {
-                console.error('Error fetching transactions:', error);
-            }
-        };
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [items, setItems] = useState([]);
+    const [perPage, setPerPage] = useState(5);
 
-        fetchTransactions();
-    }, [setTransactions]);
+    const fetchTransactions = async (page, itemsPerPage = perPage) => {
+        try {
+            const response = await fetch(`http://localhost:8000/api/fetch?page=${page}&per_page=${itemsPerPage}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            setItems(data.items || []);
+            setCurrentPage(data.page);
+            setTotalPages(data.total_pages);
+        } catch (error) {
+            console.error('Error fetching transactions:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchTransactions(1);
+    }, []);
+
+    const handlePageChange = async (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            await fetchTransactions(newPage);
+        }
+    };
+
+    const handlePerPageChange = async (e) => {
+        const newPerPage = parseInt(e.target.value);
+        setPerPage(newPerPage);
+        await fetchTransactions(1, newPerPage);
+    };
 
     return (
         <div className="transactions-container">
-            <h2>Transactions History</h2>
+            <div className="transactions-header">
+                <h2>Historia Transakcji</h2>
+                <div className="per-page-selector">
+                    <label>Ilość na stronie:</label>
+                    <select value={perPage} onChange={handlePerPageChange}>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                    </select>
+                </div>
+            </div>
             <table className="transactions-table">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Amount</th>
-                        <th>Type</th>
-                        <th>Category</th>
-                        <th>Date</th>
-                        <th>Time</th>
+                        <th>Nazwa</th>
+                        <th>Ilość</th>
+                        <th>Typ</th>
+                        <th>Kategoria</th>
+                        <th>Data</th>
+                        <th>Czas</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {transactions.map((transaction, index) => (
-                        <tr key={index}>
-                            <td>{transaction.name}</td>
-                            <td>{transaction.amount} zł</td>
-                            <td>{transaction.type}</td>
-                            <td>{transaction.category}</td>
-                            <td>{transaction.date}</td>
-                            <td>{transaction.time}</td>
+                    {Array.isArray(items) && items.length > 0 ? (
+                        items.map((transaction, index) => (
+                            <tr key={index}>
+                                <td>{transaction.name}</td>
+                                <td>{transaction.amount} zł</td>
+                                <td>{transaction.type === 'income' ? 'Przychód' : 'Wydatek'}</td>
+                                <td>{transaction.category}</td>
+                                <td>{transaction.date}</td>
+                                <td>{transaction.time}</td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="6" style={{ textAlign: 'center' }}>
+                                Brak transakcji
+                            </td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
             </table>
+            {totalPages > 1 && (
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                />
+            )}
         </div>
     );
 }
