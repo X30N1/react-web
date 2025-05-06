@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './Transactions.css';
 import Pagination from './Pagination';
 
@@ -8,24 +8,33 @@ function Transactions({ transactions, setTransactions }) {
     const [items, setItems] = useState([]);
     const [perPage, setPerPage] = useState(5);
 
-    const fetchTransactions = async (page, itemsPerPage = perPage) => {
+    const fetchTransactions = useCallback(async (page, itemsPerPage = perPage) => {
         try {
-            const response = await fetch(`http://localhost:8000/api/fetch?page=${page}&per_page=${itemsPerPage}`);
+            const token = localStorage.getItem('token');
+            const response = await fetch(
+                `http://localhost:8000/api/fetch?page=${page}&per_page=${itemsPerPage}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
             setItems(data.items || []);
+            setTransactions(data.items || []); // Update parent's transaction state
             setCurrentPage(data.page);
             setTotalPages(data.total_pages);
         } catch (error) {
             console.error('Error fetching transactions:', error);
         }
-    };
+    }, [perPage, setTransactions]);
 
     useEffect(() => {
         fetchTransactions(1);
-    }, []);
+    }, [fetchTransactions, transactions]);
 
     const handlePageChange = async (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {

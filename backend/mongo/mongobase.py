@@ -3,13 +3,8 @@ from dotenv import load_dotenv
 from pymongo.mongo_client import MongoClient
 from bson import json_util
 import json
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-
-app = FastAPI()
 
 class AtlasClient():
-
     def __init__(self, dbname):
         uri = "mongodb://localhost:27017"
         self.mongodb_client = MongoClient(uri)
@@ -50,20 +45,9 @@ class AtlasClient():
         result = collection.update_one(filter, data)
         return result
 
-client = AtlasClient(dbname="mydatabase")
-
-@app.get("/api/fetch")
-def start(page: int = 1, per_page: int = 5):
-    try:
-        transactions = client.find(
-            collection_name="transactions",
-            page=page,
-            per_page=per_page
-        )
-        return JSONResponse(content=transactions)
-    except Exception as e:
-        print(f"Error fetching transactions: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"message": f"Error fetching transactions: {str(e)}"}
-        )
+    def create_indexes(self):
+        # Create unique index on email field
+        self.database["users"].create_index("email", unique=True)
+        
+        # Create index for user_id in transactions
+        self.database["transactions"].create_index("user_id")

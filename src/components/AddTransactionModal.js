@@ -16,10 +16,23 @@ function AddTransactionModal({ isOpen, onClose, onTransactionAdded }) {
         e.preventDefault();
         try {
             await apiService.addTransaction(formData);
-            onTransactionAdded();
+            // Reset form data
+            setFormData({
+                name: '',
+                amount: '',
+                type: 'expense',
+                category: '',
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toTimeString().split(' ')[0]
+            });
+            // Trigger the callback to refresh transactions
+            if (onTransactionAdded) {
+                await onTransactionAdded();
+            }
             onClose();
         } catch (error) {
             console.error('Error adding transaction:', error);
+            alert('Error adding transaction. Please try again.');
         }
     };
 
